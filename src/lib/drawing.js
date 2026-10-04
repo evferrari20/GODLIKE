@@ -135,14 +135,15 @@ export const GUIDES = {
   vertical: 'Vertical frame 9:16',
 };
 
+// Joint angles in degrees (0 = right, 90 = straight down): [upper, lower].
 export const POSES = {
-  standing: { label: 'Standing', j: { lean: 0, lA: [200, 170], rA: [-20, 10], lL: [95, 95], rL: [85, 85] } },
-  walking: { label: 'Walking', j: { lean: 4, lA: [140, 120], rA: [40, 70], lL: [115, 80], rL: [65, 110] } },
-  running: { label: 'Running', j: { lean: 14, lA: [120, 40], rA: [60, 150], lL: [140, 60], rL: [40, 150] } },
-  sitting: { label: 'Sitting', j: { lean: 0, lA: [120, 80], rA: [60, 100], lL: [180, 90], rL: [0, 90], sit: true } },
-  pointing: { label: 'Pointing', j: { lean: -3, lA: [200, 170], rA: [-10, -10], lL: [100, 90], rL: [80, 90] } },
-  heroic: { label: 'Heroic', j: { lean: 0, lA: [235, 120], rA: [-55, 60], lL: [115, 100], rL: [65, 80] } },
-  crouch: { label: 'Crouching', j: { lean: 25, lA: [130, 90], rA: [50, 90], lL: [160, 50], rL: [20, 130] } },
+  standing: { label: 'Standing', j: { lean: 0, lA: [105, 95], rA: [75, 85], lL: [97, 92], rL: [83, 88] } },
+  walking: { label: 'Walking', j: { lean: 3, lA: [120, 100], rA: [60, 40], lL: [115, 95], rL: [70, 100] } },
+  running: { label: 'Running', j: { lean: 12, lA: [150, 70], rA: [40, -40], lL: [130, 100], rL: [45, 110] } },
+  sitting: { label: 'Sitting', j: { lean: 0, lA: [110, 60], rA: [70, 120], lL: [125, 90], rL: [55, 90], sit: true } },
+  pointing: { label: 'Pointing', j: { lean: -3, lA: [105, 95], rA: [-5, -5], lL: [100, 92], rL: [80, 88] } },
+  heroic: { label: 'Hands on hips', j: { lean: 0, lA: [125, 20], rA: [55, 160], lL: [110, 95], rL: [70, 85] } },
+  crouch: { label: 'Crouching', j: { lean: 18, lA: [110, 60], rA: [70, 120], lL: [140, 70], rL: [40, 110], sit: true } },
 };
 
 function limb(ctx, x, y, a1, a2, l1, l2) {
@@ -173,7 +174,7 @@ export function drawMannequin(ctx, cx, top, height, poseKey) {
   // shoulders
   const sh = { lx: neck.x - H * 0.75, rx: neck.x + H * 0.75, y: neck.y + H * 0.25 };
   ctx.beginPath(); ctx.moveTo(sh.lx, sh.y); ctx.lineTo(sh.rx, sh.y); ctx.stroke();
-  limb(ctx, sh.lx, sh.y, p.lA[0] - 90 + 180 - 180 + (p.lA[0] > 180 ? 0 : 0), p.lA[1], H * 1.4, H * 1.3);
+  limb(ctx, sh.lx, sh.y, p.lA[0], p.lA[1], H * 1.4, H * 1.3);
   limb(ctx, sh.rx, sh.y, p.rA[0], p.rA[1], H * 1.4, H * 1.3);
   // legs
   limb(ctx, cx - H * 0.3, hipY, p.lL[0], p.lL[1], H * 1.9, H * 1.9);

@@ -139,7 +139,7 @@ export default function ScriptEditor({ go }) {
       e.preventDefault();
       // Enter on an empty line changes its type instead of adding blank lines.
       if (!b.text.trim()) {
-        const t = b.type === 'action' ? 'scene' : b.type === 'scene' ? 'character' : 'action';
+        const t = b.type === 'action' ? 'scene' : 'action';
         if (fmt.elements.includes(t)) setBlock(b.id, { type: t }, { structural: true });
         return;
       }
@@ -178,7 +178,7 @@ export default function ScriptEditor({ go }) {
     // Smart detection, the way pro editors do it.
     if (type === 'action' && /^(int|ext|int\/ext|i\/e|est)[. ]/i.test(text) && fmt.elements.includes('scene')) type = 'scene';
     if (type === 'action' && /^[A-Z][A-Z .']+TO:$/.test(text.trim()) && fmt.elements.includes('transition')) type = 'transition';
-    if (type === 'character' && text.startsWith('(') && b.text === '') type = 'parenthetical';
+    if ((type === 'character' || type === 'dialogue') && text.startsWith('(') && b.text === '' && fmt.elements.includes('parenthetical')) type = 'parenthetical';
     setBlock(b.id, { text, type });
   };
 
@@ -264,7 +264,7 @@ export default function ScriptEditor({ go }) {
           <span>{words.toLocaleString()} words</span>
           <span>Target {fmt.pages[0]}–{fmt.pages[1]} pp</span>
           <div className="spacer" />
-          {tipsOn && tip && <span style={{ color: 'var(--wood)' }}>💡 {tip}</span>}
+          {tipsOn && tip && <span className="tip-line" style={{ color: 'var(--wood)' }}>💡 {tip}</span>}
         </div>
       </div>
 
@@ -286,7 +286,7 @@ function isFirstVisualLine(el) {
 function Block({ b, first, focused, sceneNo, refCb, onFocus, onChange, onKeyDown, names, locations, setText }) {
   const el = ELEMENTS[b.type] || ELEMENTS.action;
   const taRef = useRef();
-  const [suggIndex, setSuggIndex] = useState(0);
+  const [suggIndex, setSuggIndex] = useState(() => (b.text ? 0 : -1));
   const [closed, setClosed] = useState(false);
 
   useLayoutEffect(() => {
