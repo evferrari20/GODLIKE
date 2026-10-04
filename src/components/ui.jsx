@@ -97,3 +97,20 @@ export function Chips({ options, value, onChange, multi = true }) {
 export function initials(name) {
   return (name || '?').split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 }
+
+/** Two-step delete: the first click arms it, the second confirms. */
+export function ConfirmButton({ onConfirm, children = 'Delete', className = '' }) {
+  const [armed, setArmed] = useState(false);
+  return (
+    <button
+      className={`btn ${className} ${armed ? 'danger on' : ''}`}
+      onBlur={() => setArmed(false)}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (armed) { setArmed(false); onConfirm(); } else { setArmed(true); setTimeout(() => setArmed(false), 3000); }
+      }}
+    >
+      {armed ? 'Click again to delete' : children}
+    </button>
+  );
+}

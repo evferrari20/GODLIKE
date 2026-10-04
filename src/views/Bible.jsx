@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useActiveProject, useProjects, uid, toast } from '../store';
-import { Field, Lesson, Tip, Modal, useBusy, initials, AIButton } from '../components/ui';
+import { Field, Lesson, Tip, Modal, useBusy, initials, AIButton, ConfirmButton } from '../components/ui';
 import HelpMe from '../components/HelpMe';
 import { ROLES, newCharacter } from './Wizard';
 import { ask, hasAI, projectContext } from '../lib/ai';
@@ -108,7 +108,7 @@ function Characters({ project, update, sel, setSel, go }) {
                   <AIButton className="sm" onClick={() => setInterview(true)}>Interview {c.name || 'them'}</AIButton>
                   <button className="btn sm" onClick={() => setVoice(true)}>🔊 Voice check</button>
                   <div className="spacer" />
-                  <button className="btn sm ghost danger" onClick={() => { if (confirm(`Delete ${c.name || 'this character'}?`)) { update({ characters: chars.filter((x) => x.id !== c.id) }); setSel(chars.find((x) => x.id !== c.id)?.id); } }}>Delete</button>
+                  <ConfirmButton className="sm ghost danger" onConfirm={() => { update({ characters: chars.filter((x) => x.id !== c.id) }); setSel(chars.find((x) => x.id !== c.id)?.id); }} />
                 </div>
               </div>
             </div>

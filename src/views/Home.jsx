@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useProjects, toast } from '../store';
 import { FORMATS, FORMAT_GROUPS } from '../data/formats';
-import { Modal, Lesson } from '../components/ui';
+import { Modal, Lesson, ConfirmButton } from '../components/ui';
 import { readBackup } from '../lib/exporters';
 import { paginate } from '../lib/layout';
 
@@ -88,7 +88,7 @@ export default function Home({ go }) {
                     <span>{pages} / {f.pages[0]}+ pages</span>
                     <div className="spacer" />
                     <button className="btn xs ghost" onClick={(e) => { e.stopPropagation(); duplicateProject(p.id); }}>Duplicate</button>
-                    <button className="btn xs ghost danger" onClick={(e) => { e.stopPropagation(); if (confirm(`Delete "${p.title}" forever?`)) deleteProject(p.id); }}>Delete</button>
+                    <ConfirmButton className="xs ghost danger" onConfirm={() => deleteProject(p.id)} />
                   </div>
                 </div>
               );

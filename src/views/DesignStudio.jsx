@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { useActiveProject, useProjects, useSettings, uid, toast } from '../store';
 import DrawingCanvas from '../components/DrawingCanvas';
-import { Lesson, Modal, useBusy } from '../components/ui';
+import { Lesson, Modal, useBusy, ConfirmButton } from '../components/ui';
 import { ask, hasAI, imageBlock, projectContext } from '../lib/ai';
 import { generateImage } from '../lib/imagegen';
 
@@ -69,7 +69,7 @@ function Gallery({ project, update }) {
                 <div style={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.title}</div>
                 <div className="faint small">{KINDS[d.kind]?.label}{linkedName(project, d) ? ` · ${linkedName(project, d)}` : ''}</div>
               </div>
-              <button className="btn xs ghost danger" onClick={(e) => { e.stopPropagation(); if (confirm(`Delete "${d.title}"?`)) update({ designs: project.designs.filter((x) => x.id !== d.id) }); }}>✕</button>
+              <ConfirmButton className="xs ghost danger" onConfirm={() => update({ designs: project.designs.filter((x) => x.id !== d.id) })}>✕</ConfirmButton>
             </div>
           </div>
         ))}
