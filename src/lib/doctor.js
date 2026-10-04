@@ -57,10 +57,19 @@ export function runDoctor(project) {
   // ---------- Scenes ----------
   const isScreen = !['stagePlay', 'audioDrama'].includes(project.format);
   for (const s of scenes) {
-    if (s.type === 'scene' && isScreen) {
+    if (s.type === 'scene' && isScreen && s.heading !== '(untitled scene)') {
       const h = s.heading.toUpperCase();
       if (s.heading !== '(opening)' && !/^(INT\.?|EXT\.?|INT\.?\/EXT\.?|I\/E\.?)\s/.test(h)) add('med', 'Format', 'Scene heading missing INT./EXT.', `"${s.heading}" should start with INT. or EXT. so the production knows where it's shot.`, s.id);
       else if (s.heading !== '(opening)' && !/ - /.test(h)) add('low', 'Format', 'Scene heading missing time of day', `"${s.heading}" should end with " - DAY", " - NIGHT", etc.`, s.id);
+    }
+    if (s.heading !== '(opening)' && !s.blocks.slice(1).some((b) => b.text?.trim())) {
+      add('med', 'Format', 'Empty scene', `"${s.heading.toUpperCase() || 'An untitled scene'}" has nothing under it. It may be a duplicate or a placeholder. Delete it from the scene list, or write what happens.`, s.id);
+    }
+    if (s.type === 'scene' && isScreen) {
+      const loc = s.heading.toUpperCase().replace(/^(INT\.?\/EXT\.?|I\/E\.?|INT\.?|EXT\.?)\s*/, '').split(' - ')[0].trim();
+      if (loc.includes(',') || loc.split(/\s+/).length > 5) {
+        add('low', 'Format', 'Scene heading is long', `"${s.heading.toUpperCase()}": keep headings to a short place name the crew can schedule (e.g. "EXT. WYATT HOMESTEAD - NIGHT"). Put description like style or era in the first action line.`, s.id);
+      }
     }
     const startPage = pageOf[s.id];
     const endPage = pageOf[s.blocks[s.blocks.length - 1].id];

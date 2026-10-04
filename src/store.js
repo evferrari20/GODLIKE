@@ -52,6 +52,7 @@ export const useProjects = create(
     (setState, getState) => ({
       projects: {},
       activeId: null,
+      seeded: false,
 
       createProject(format, extra = {}) {
         const p = { ...blankProject(format), ...extra };
@@ -89,7 +90,7 @@ export const useProjects = create(
         });
       },
     }),
-    { name: 'godlike-projects', storage: idbStorage, partialize: (s) => ({ projects: s.projects, activeId: s.activeId }) }
+    { name: 'godlike-projects', storage: idbStorage, partialize: (s) => ({ projects: s.projects, activeId: s.activeId, seeded: s.seeded }) }
   )
 );
 

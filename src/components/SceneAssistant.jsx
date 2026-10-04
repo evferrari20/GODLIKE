@@ -4,7 +4,7 @@ import { SCENE_BANK, ELEMENT_TIPS } from '../data/tips';
 import { ELEMENTS, FORMATS, tabCycle } from '../data/formats';
 import { hasAI, ask, projectContext, scriptToText } from '../lib/ai';
 import { suggestOptions, suggestQuestions, draftBlocks } from '../lib/assist';
-import { useBusy } from './ui';
+import { useBusy, ConfirmButton } from './ui';
 import { ASSIST_LABELS } from './HelpMe';
 
 const shuffle = (a) => [...a].sort(() => Math.random() - 0.5);
@@ -13,7 +13,7 @@ const shuffle = (a) => [...a].sort(() => Math.random() - 0.5);
  * The right-hand panel of the script editor. Its behaviour follows the
  * writer's assist level: questions (0), options (1) or drafts (2).
  */
-export default function SceneAssistant({ project, scene, focusBlock, insertAfter, setBlock }) {
+export default function SceneAssistant({ project, scene, focusBlock, insertAfter, setBlock, deleteScene }) {
   const [tab, setTab] = useState('assist');
   return (
     <>
@@ -24,7 +24,7 @@ export default function SceneAssistant({ project, scene, focusBlock, insertAfter
           ))}
         </div>
       </div>
-      {tab === 'assist' && <AssistTab project={project} scene={scene} focusBlock={focusBlock} insertAfter={insertAfter} setBlock={setBlock} />}
+      {tab === 'assist' && <AssistTab project={project} scene={scene} focusBlock={focusBlock} insertAfter={insertAfter} setBlock={setBlock} deleteScene={deleteScene} />}
       {tab === 'chat' && <ChatTab project={project} scene={scene} />}
       {tab === 'guide' && <GuideTab project={project} focusBlock={focusBlock} />}
     </>
@@ -42,7 +42,7 @@ function AssistLevel() {
   );
 }
 
-function AssistTab({ project, scene, focusBlock, insertAfter, setBlock }) {
+function AssistTab({ project, scene, focusBlock, insertAfter, setBlock, deleteScene }) {
   const level = useSettings((s) => s.assistLevel);
   const [busy, run] = useBusy();
   const [aiResult, setAiResult] = useState(null);
@@ -101,7 +101,10 @@ function AssistTab({ project, scene, focusBlock, insertAfter, setBlock }) {
 
       <div className="card inset" style={{ padding: 12 }}>
         <div className="eyebrow">This scene</div>
-        <div style={{ fontFamily: 'var(--font-script)', fontWeight: 700, margin: '4px 0 8px' }}>{heading?.text || 'No scene heading yet'}</div>
+        <div className="row" style={{ margin: '4px 0 8px', alignItems: 'flex-start' }}>
+          <div className="grow" style={{ fontFamily: 'var(--font-script)', fontWeight: 700, textTransform: 'uppercase' }}>{heading?.text || 'No scene heading yet'}</div>
+          {scene && <ConfirmButton className="xs ghost danger" onConfirm={() => deleteScene(scene)}>Delete scene</ConfirmButton>}
+        </div>
         <textarea className="textarea" rows={3} placeholder="Scene notes: who wants what, what's in the way, how does it turn?" value={note} onChange={(e) => setNote(e.target.value)} disabled={!heading} />
         <div className="why" style={{ marginTop: 6 }}>Notes are for you only and never appear in the script.</div>
       </div>

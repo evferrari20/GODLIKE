@@ -6,6 +6,7 @@ import { STRUCTURES } from '../data/structures';
 import { FormatPicker } from './Home';
 import { Lesson, Field, Chips, Tip } from '../components/ui';
 import HelpMe from '../components/HelpMe';
+import LongHint from '../components/LongHint';
 
 const SPARKS = {
   who: ['a retired stuntwoman', 'a night-shift janitor', 'a disgraced chef', 'twin sisters who swapped lives', 'a lonely lighthouse keeper', 'a teenage hacker', 'a small-town mayor', 'a ghost who doesn\'t know it', 'a wedding DJ', 'an aging rock star'],
@@ -110,6 +111,7 @@ function StepGenre({ project, update }) {
   return (
     <div className="col" style={{ gap: 18 }}>
       <Field label="Genre (pick one or two)"><Chips options={GENRES} value={project.genres} onChange={(v) => update({ genres: v })} /></Field>
+      {project.genres.length > 2 && <Tip>You've picked {project.genres.length} genres. Most stories lead with one or two; the rest can show up as flavour. Which one is the main promise to your audience? (Western horror, for example, leads with horror.)</Tip>}
       <Field label="Tone"><Chips options={TONES} value={project.tones} onChange={(v) => update({ tones: v })} /></Field>
       <Field label="Theme: what is your story really about?" help="A theme is an idea about life, like 'You can't outrun your past' or 'Love means letting go.' Many writers only discover it while writing, and that's fine.">
         <input className="input" value={project.theme} onChange={(e) => update({ theme: e.target.value })} placeholder="Real courage is asking for help." />
@@ -138,6 +140,7 @@ function StepHero({ project, update }) {
   const field = (k, label, help, ph, rows = 2) => (
     <Field label={label} help={help}>
       <textarea className="textarea" rows={rows} value={hero[k]} onChange={(e) => setHero({ [k]: e.target.value })} placeholder={ph} />
+      <LongHint field={k} text={hero[k]} />
     </Field>
   );
   return (

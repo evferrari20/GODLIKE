@@ -1,9 +1,10 @@
 import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useActiveProject, useProjects, useSettings, uid } from '../store';
+import { useActiveProject, useProjects, useSettings, uid, toast } from '../store';
 import { ELEMENTS, NEXT_ON_ENTER, FORMATS, tabCycle } from '../data/formats';
 import { ELEMENT_TIPS } from '../data/tips';
 import { paginate, scenesOf, SPACE_BEFORE } from '../lib/layout';
 import SceneAssistant from '../components/SceneAssistant';
+import { ConfirmButton } from '../components/ui';
 
 const PAPER_IN = 8.5;
 const TIMES = ['DAY', 'NIGHT', 'MORNING', 'EVENING', 'DAWN', 'DUSK', 'CONTINUOUS', 'LATER', 'MOMENTS LATER'];
@@ -182,6 +183,16 @@ export default function ScriptEditor({ go }) {
     setBlock(b.id, { text, type });
   };
 
+  const deleteScene = (scene) => {
+    const ids = new Set(scene.blocks.map((b) => b.id));
+    let next = blocks.filter((b) => !ids.has(b.id));
+    if (!next.length) next = [{ id: uid(), type: fmt.elements.includes('scene') ? 'scene' : fmt.elements[0], text: '' }];
+    commit(next, { structural: true });
+    const after = next[Math.min(scene.index, next.length - 1)];
+    setFocus({ id: after.id, caret: 0 });
+    toast('Scene deleted. Ctrl+Z brings it back.');
+  };
+
   const jumpTo = (id) => {
     setFocus({ id, caret: 0 });
     refs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -208,7 +219,8 @@ export default function ScriptEditor({ go }) {
             <div key={s.id} className={`scene-nav-item ${['actBreak', 'coldOpen', 'actHeading'].includes(s.type) ? 'act' : ''}`} onClick={() => jumpTo(s.id)}
               style={currentScene?.id === s.id ? { background: 'var(--wood-soft)', color: 'var(--text)' } : null}>
               <span className="num">{sceneNo[s.id] || ''}</span>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.heading || '—'}</span>
+              <span className="grow" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{s.heading || '—'}</span>
+              <span className="nav-del"><ConfirmButton className="xs ghost danger" onConfirm={() => deleteScene(s)}>✕</ConfirmButton></span>
             </div>
           ))}
           {!scenes.length && <div className="faint small">Your scenes will appear here as you add scene headings.</div>}
@@ -270,7 +282,7 @@ export default function ScriptEditor({ go }) {
 
       {showRight && (
         <div className="side right">
-          <SceneAssistant project={project} scene={currentScene} focusBlock={focusBlock} insertAfter={insertAfter} setBlock={setBlock} go={go} />
+          <SceneAssistant project={project} scene={currentScene} focusBlock={focusBlock} insertAfter={insertAfter} setBlock={setBlock} deleteScene={deleteScene} go={go} />
         </div>
       )}
     </div>

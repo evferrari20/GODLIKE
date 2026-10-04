@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useActiveProject, useProjects, uid, toast } from '../store';
 import { Field, Lesson, Tip, Modal, useBusy, initials, AIButton, ConfirmButton } from '../components/ui';
 import HelpMe from '../components/HelpMe';
+import LongHint from '../components/LongHint';
 import { ROLES, newCharacter } from './Wizard';
 import { ask, hasAI, projectContext } from '../lib/ai';
 import { newDesign } from './DesignStudio';
@@ -121,6 +122,7 @@ function Characters({ project, update, sel, setSel, go }) {
                   <div className="row"><h3 style={{ margin: 0 }}>{f.label}</h3><div className="spacer" /><span className="why">{f.why}</span></div>
                   <div className="muted small">{f.q}</div>
                   <textarea className="textarea" rows={2} value={c[f.k] || ''} onChange={(e) => setC({ [f.k]: e.target.value })} />
+                  <LongHint field={f.k} text={c[f.k]} />
                   <HelpMe project={project} task={`For the character ${c.name || '(unnamed)'} (${c.role}), suggest their ${f.label.toLowerCase()}. Guidance: ${f.q}`} onPick={(t) => setC({ [f.k]: t })} label={`Ideas for ${f.label.toLowerCase()}`} />
                 </div>
               ))}

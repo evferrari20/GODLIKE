@@ -12,6 +12,7 @@ const Library = lazy(() => import('./views/Library'));
 const Settings = lazy(() => import('./views/Settings'));
 import ExportMenu from './components/ExportMenu';
 import { FORMATS } from './data/formats';
+import { SEED_PROJECT } from './data/seed';
 
 const NAV = [
   { group: 'Develop', items: [
@@ -46,6 +47,14 @@ export default function App() {
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => useProjects.persist.onFinishHydration(() => setHydrated(true)), []);
+  // First visit: load the starter project once, never again after that.
+  useEffect(() => {
+    if (!hydrated) return;
+    const st = useProjects.getState();
+    if (st.seeded) return;
+    if (!Object.keys(st.projects).length) st.importProject(SEED_PROJECT);
+    useProjects.setState({ seeded: true });
+  }, [hydrated]);
   useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
 
   const needsProject = !['home', 'library', 'settings'].includes(view);
