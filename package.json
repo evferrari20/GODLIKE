@@ -1,0 +1,24 @@
+{
+  "name": "godlike",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "GODLIKE — a guided screenwriting studio for film, TV, stage and audio.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
+    "idb-keyval": "^6.2.1",
+    "jspdf": "^4.2.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.1",
+    "vite": "^8.3.2"
+  }
+}
