@@ -24,7 +24,7 @@ export default function ExportMenu({ project }) {
           </div>
           <div className="divider" />
           <div className="grid c2">
-            <button className="card hover" style={{ textAlign: 'left' }} onClick={() => { exportPDF(project); toast('PDF downloaded', 'ok'); }}>
+            <button className="card hover" style={{ textAlign: 'left' }} onClick={async () => { await exportPDF(project); toast('PDF downloaded', 'ok'); }}>
               <h3>📄 PDF (industry format)</h3>
               <div className="muted small">Courier 12pt, standard margins, title page and page numbers. Ready to send to readers and contests.</div>
             </button>

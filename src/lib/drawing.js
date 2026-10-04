@@ -266,6 +266,7 @@ export function drawGuide(ctx, w, h, guide, opts = {}) {
 export function loadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    if (/^https?:/.test(src)) img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error('Could not load that image.'));
     img.src = src;

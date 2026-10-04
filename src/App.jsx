@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useProjects, useSettings, useActiveProject } from './store';
 import { Toasts } from './components/ui';
 import Home from './views/Home';
-import Wizard from './views/Wizard';
-import ScriptEditor from './views/ScriptEditor';
-import BeatBoard from './views/BeatBoard';
-import Bible from './views/Bible';
-import DesignStudio from './views/DesignStudio';
-import Doctor from './views/Doctor';
-import Library from './views/Library';
-import Settings from './views/Settings';
+const Wizard = lazy(() => import('./views/Wizard'));
+const ScriptEditor = lazy(() => import('./views/ScriptEditor'));
+const BeatBoard = lazy(() => import('./views/BeatBoard'));
+const Bible = lazy(() => import('./views/Bible'));
+const DesignStudio = lazy(() => import('./views/DesignStudio'));
+const Doctor = lazy(() => import('./views/Doctor'));
+const Library = lazy(() => import('./views/Library'));
+const Settings = lazy(() => import('./views/Settings'));
 import ExportMenu from './components/ExportMenu';
 import { FORMATS } from './data/formats';
 
@@ -109,7 +109,7 @@ export default function App() {
             <ExportMenu project={project} />
           </div>
         ) : null}
-        <div className="fill">{page}</div>
+        <div className="fill"><Suspense fallback={<div className="center" style={{ flex: 1 }}><span className="spinner" /></div>}>{page}</Suspense></div>
       </main>
       <Toasts />
     </div>

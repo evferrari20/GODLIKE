@@ -1,5 +1,4 @@
 // Export: industry-format PDF and a full-project JSON backup.
-import { jsPDF } from 'jspdf';
 import { paginate, LINES_PER_PAGE } from './layout';
 import { FORMATS } from '../data/formats';
 
@@ -10,7 +9,8 @@ function safeName(title) {
   return (title || 'untitled').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '_') || 'untitled';
 }
 
-export function exportPDF(project) {
+export async function exportPDF(project) {
+  const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({ unit: 'pt', format: 'letter' });
   doc.setFont('courier', 'normal');
   doc.setFontSize(12);

@@ -1,6 +1,5 @@
 // Claude integration. GODLIKE is a static site, so calls go straight from the
 // browser using the writer's own API key (stored only in their browser).
-import Anthropic from '@anthropic-ai/sdk';
 import { useSettings } from '../store';
 
 export const MODELS = [
@@ -13,9 +12,11 @@ export function hasAI() {
   return Boolean(useSettings.getState().apiKey);
 }
 
-function client() {
+// The SDK is loaded on first use so it doesn't slow the initial page load.
+async function client() {
   const { apiKey } = useSettings.getState();
   if (!apiKey) throw new Error('Add your Claude API key in Settings to use AI features.');
+  const { default: Anthropic } = await import('@anthropic-ai/sdk');
   return new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
 }
 
@@ -55,9 +56,8 @@ export async function ask({ content, system, schema, maxTokens = 16000, effort, 
   const params = buildParams({ model, system, messages, maxTokens, schema, effort });
   let response;
   try {
-    response = params.betas
-      ? await client().beta.messages.create(params)
-      : await client().messages.create(params);
+    const c = await client();
+    response = params.betas ? await c.beta.messages.create(params) : await c.messages.create(params);
   } catch (err) {
     throw new Error(friendlyError(err));
   }

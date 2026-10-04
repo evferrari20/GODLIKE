@@ -22,7 +22,13 @@ export async function generateImage(prompt, { width = 768, height = 768, seed } 
   // with the project and works offline later.
   const s = seed ?? Math.floor(Math.random() * 1e9);
   const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${width}&height=${height}&seed=${s}&nologo=true`;
-  const res = await fetch(url);
+  let res;
+  try {
+    res = await fetch(url);
+  } catch {
+    // Network/CORS hiccup: fall back to the hosted URL so the image still shows.
+    return url;
+  }
   if (!res.ok) throw new Error('The free image service is busy. Try again in a moment.');
   const blob = await res.blob();
   return await new Promise((resolve, reject) => {

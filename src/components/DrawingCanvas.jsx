@@ -51,6 +51,7 @@ const DrawingCanvas = forwardRef(function DrawingCanvas({ design, onSave, panelS
   const dirty = useRef(new Set());
   const saveTimer = useRef();
   const spaceDown = useRef(false);
+  const textRef = useRef();
 
   // ---------- load layers ----------
   useEffect(() => {
@@ -142,8 +143,49 @@ const DrawingCanvas = forwardRef(function DrawingCanvas({ design, onSave, panelS
     scheduleSave([layerId]);
     force((n) => n + 1);
   };
+  // Structural (layer add/delete/merge) history: whole-stack snapshots.
+  const snapshotAll = (meta) => {
+    const canvases = {};
+    for (const l of meta) {
+      const src = canv.current[l.id];
+      if (!src) continue;
+      const c = document.createElement('canvas');
+      c.width = W; c.height = H;
+      c.getContext('2d').drawImage(src, 0, 0);
+      canvases[l.id] = c;
+    }
+    return { meta, canvases, active };
+  };
+  const restoreAll = (snap) => {
+    setLayers(snap.meta);
+    setActive(snap.meta.some((l) => l.id === snap.active) ? snap.active : snap.meta.at(-1)?.id);
+    requestAnimationFrame(() => {
+      for (const l of snap.meta) {
+        const c = canv.current[l.id];
+        if (!c) continue;
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0, 0, W, H);
+        if (snap.canvases[l.id]) ctx.drawImage(snap.canvases[l.id], 0, 0);
+      }
+      scheduleSave(snap.meta.map((l) => l.id), snap.meta);
+      force((n) => n + 1);
+    });
+  };
+  /** Run a layer-structure change so it can be undone. `fn` returns the new meta list. */
+  const structural = (fn) => {
+    const before = snapshotAll(layers);
+    const nextMeta = fn();
+    requestAnimationFrame(() => {
+      undo.current.past.push({ kind: 'struct', before, after: snapshotAll(nextMeta) });
+      if (undo.current.past.length > MAX_UNDO) undo.current.past.shift();
+      undo.current.future = [];
+      force((n) => n + 1);
+    });
+  };
+
   const doUndo = () => {
     const s = undo.current.past.pop();
+    if (s?.kind === 'struct') { undo.current.future.push(s); return restoreAll(s.before); }
     if (!s || !canv.current[s.layerId]) return;
     canv.current[s.layerId].getContext('2d').putImageData(s.before, s.x, s.y);
     undo.current.future.push(s);
@@ -152,6 +194,7 @@ const DrawingCanvas = forwardRef(function DrawingCanvas({ design, onSave, panelS
   };
   const doRedo = () => {
     const s = undo.current.future.pop();
+    if (s?.kind === 'struct') { undo.current.past.push(s); return restoreAll(s.after); }
     if (!s || !canv.current[s.layerId]) return;
     canv.current[s.layerId].getContext('2d').putImageData(s.after, s.x, s.y);
     undo.current.past.push(s);
@@ -240,10 +283,11 @@ const DrawingCanvas = forwardRef(function DrawingCanvas({ design, onSave, panelS
 
   const addLayer = (name = `Layer ${layers.length}`, afterId = active) => {
     const l = { id: uid(), name, visible: true, opacity: 1 };
-    setLayers((ls) => {
-      const i = ls.findIndex((x) => x.id === afterId);
-      const next = [...ls];
+    structural(() => {
+      const i = layers.findIndex((x) => x.id === afterId);
+      const next = [...layers];
       next.splice(i + 1, 0, l);
+      setLayers(next);
       return next;
     });
     setActive(l.id);
@@ -318,7 +362,7 @@ const DrawingCanvas = forwardRef(function DrawingCanvas({ design, onSave, panelS
       pickColor(rgbToHex(d.data[i], d.data[i + 1], d.data[i + 2]));
       return;
     }
-    if (tool === 'text') { setTextBox({ x: pt.x, y: pt.y, value: '' }); }
+    if (tool === 'text') { e.preventDefault(); setTextBox({ x: pt.x, y: pt.y, value: '' }); }
   };
 
   const onPointerMove = (e) => {
@@ -437,6 +481,12 @@ const DrawingCanvas = forwardRef(function DrawingCanvas({ design, onSave, panelS
     endOp(active, backup);
   };
 
+  // Focus the text box after the click that created it has finished.
+  const hasTextBox = !!textBox;
+  useEffect(() => {
+    if (hasTextBox) setTimeout(() => textRef.current?.focus(), 0);
+  }, [hasTextBox]);
+
   // ---------- keyboard ----------
   useEffect(() => {
     const down = (e) => {
@@ -477,11 +527,10 @@ const DrawingCanvas = forwardRef(function DrawingCanvas({ design, onSave, panelS
   });
   const deleteLayer = (id) => {
     if (layers.length <= 1) return;
-    if (!confirm('Delete this layer?')) return;
     const rest = layers.filter((l) => l.id !== id);
-    setLayers(rest);
+    structural(() => { setLayers(rest); return rest; });
     if (active === id) setActive(rest.at(-1).id);
-    undo.current.past = undo.current.past.filter((s) => s.layerId !== id);
+    toast('Layer deleted. Ctrl+Z brings it back.');
   };
   const duplicateLayer = (id) => {
     const src = canv.current[id];
@@ -492,11 +541,14 @@ const DrawingCanvas = forwardRef(function DrawingCanvas({ design, onSave, panelS
     const i = layers.findIndex((l) => l.id === id);
     if (i <= 0) return;
     const below = layers[i - 1], me = layers[i];
-    const backup = beginOp(below.id);
-    const ctx = canv.current[below.id].getContext('2d');
-    ctx.save(); ctx.globalAlpha = me.opacity; ctx.drawImage(canv.current[me.id], 0, 0); ctx.restore();
-    endOp(below.id, backup);
-    setLayers((ls) => ls.filter((l) => l.id !== id));
+    structural(() => {
+      const ctx = canv.current[below.id].getContext('2d');
+      ctx.save(); ctx.globalAlpha = me.opacity; ctx.drawImage(canv.current[me.id], 0, 0); ctx.restore();
+      const rest = layers.filter((l) => l.id !== id);
+      setLayers(rest);
+      scheduleSave([below.id], rest);
+      return rest;
+    });
     setActive(below.id);
   };
   const clearLayer = (id) => {
@@ -552,6 +604,7 @@ const DrawingCanvas = forwardRef(function DrawingCanvas({ design, onSave, panelS
           <canvas ref={overlayRef} width={W} height={H} style={{ zIndex: 1001, pointerEvents: 'none' }} />
           {textBox && (
             <textarea
+              ref={textRef}
               autoFocus
               value={textBox.value}
               onPointerDown={(e) => e.stopPropagation()}
